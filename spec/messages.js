@@ -4,7 +4,7 @@ const { Promise, Strophe, $msg, dayjs, sizzle, _ } = converse.env;
 const u = converse.env.utils;
 
 
-describe("A Chat Message", function () {
+fdescribe("A Chat Message", function () {
 
     it("is rejected if it's an unencapsulated forwarded message",
         mock.initConverse(
@@ -434,7 +434,8 @@ describe("A Chat Message", function () {
             .c('composing', {'xmlns': Strophe.NS.CHATSTATES}).up()
             .tree();
         _converse.handleMessageStanza(msg);
-        await new Promise(resolve => view.model.messages.once('rendered', resolve));
+        const csntext = await u.waitUntil(() => view.el.querySelector('.chat-content__notifications').textContent);
+        expect(csntext.trim()).toEqual('Mercutio is typing');
 
         msg = $msg({
                 'id': _converse.connection.getUniqueId(),
@@ -473,7 +474,7 @@ describe("A Chat Message", function () {
 
         el = sizzle('.chat-msg:eq(1)', view.content).pop();
         expect(el.querySelector('.chat-msg__text').textContent).toEqual('Inbetween message');
-        expect(el.nextElementSibling.querySelector('.chat-msg__text').textContent).toEqual('another inbetween message');
+        expect(el.parentElement.nextElementSibling.querySelector('.chat-msg__text').textContent).toEqual('another inbetween message');
         el = sizzle('.chat-msg:eq(2)', view.content).pop();
         expect(el.querySelector('.chat-msg__text').textContent)
             .toEqual('another inbetween message');
@@ -492,7 +493,7 @@ describe("A Chat Message", function () {
 
         el = sizzle('.chat-msg:eq(4)', view.content).pop();
         expect(el.querySelector('.chat-msg__text').textContent).toEqual('message');
-        expect(el.nextElementSibling.querySelector('.chat-msg__text').textContent).toEqual('newer message from the next day');
+        expect(el.parentElement.nextElementSibling.querySelector('.chat-msg__text').textContent).toEqual('newer message from the next day');
         expect(u.hasClass('chat-msg--followup', el)).toBe(false);
 
         day = sizzle('.date-separator:last', view.content).pop();
@@ -845,7 +846,7 @@ describe("A Chat Message", function () {
         expect(view.model.sendMessage).toHaveBeenCalled();
         const msg = sizzle('.chat-content .chat-msg:last .chat-msg__text', view.el).pop();
         expect(msg.textContent).toEqual(message);
-        expect(msg.innerHTML).toEqual('&lt;p&gt;This message contains &lt;em&gt;some&lt;/em&gt; &lt;b&gt;markup&lt;/b&gt;&lt;/p&gt;');
+        expect(msg.innerHTML.replace(/<!---->/g, '')).toEqual('&lt;p&gt;This message contains &lt;em&gt;some&lt;/em&gt; &lt;b&gt;markup&lt;/b&gt;&lt;/p&gt;');
         done();
     }));
 
@@ -866,7 +867,7 @@ describe("A Chat Message", function () {
         await new Promise(resolve => view.model.messages.once('rendered', resolve));
         const msg = sizzle('.chat-content .chat-msg:last .chat-msg__text', view.el).pop();
         expect(msg.textContent).toEqual(message);
-        expect(msg.innerHTML)
+        expect(msg.innerHTML.replace(/<!---->/g, ''))
             .toEqual('This message contains a hyperlink: <a target="_blank" rel="noopener" href="http://www.opkode.com">www.opkode.com</a>');
         done();
     }));
@@ -887,7 +888,7 @@ describe("A Chat Message", function () {
             </message>`);
         _converse.connection._dataRecv(mock.createRequest(stanza));
         await new Promise(resolve => view.model.messages.once('rendered', resolve));
-        expect(view.content.querySelector('.chat-msg__text').innerHTML).toBe('Hey<br>Have you heard the news?');
+        expect(view.content.querySelector('.chat-msg__text').innerHTML.replace(/<!---->/g, '')).toBe('Hey<br>Have you heard the news?');
         stanza = u.toStanza(`
             <message from="${contact_jid}"
                      type="chat"
@@ -896,7 +897,7 @@ describe("A Chat Message", function () {
             </message>`);
         _converse.connection._dataRecv(mock.createRequest(stanza));
         await new Promise(resolve => view.model.messages.once('rendered', resolve));
-        expect(view.content.querySelector('.message:last-child .chat-msg__text').innerHTML).toBe('Hey<br><br>Have you heard the news?');
+        expect(view.content.querySelector('.message:last-child .chat-msg__text').innerHTML.replace(/<!---->/g, '')).toBe('Hey<br><br>Have you heard the news?');
         stanza = u.toStanza(`
             <message from="${contact_jid}"
                      type="chat"
@@ -905,7 +906,7 @@ describe("A Chat Message", function () {
             </message>`);
         _converse.connection._dataRecv(mock.createRequest(stanza));
         await new Promise(resolve => view.model.messages.once('rendered', resolve));
-        expect(view.content.querySelector('.message:last-child .chat-msg__text').innerHTML).toBe('Hey<br>Have you heard<br>the news?');
+        expect(view.content.querySelector('.message:last-child .chat-msg__text').innerHTML.replace(/<!---->/g, '')).toBe('Hey<br>Have you heard<br>the news?');
         done();
     }));
 
@@ -925,16 +926,20 @@ describe("A Chat Message", function () {
         await u.waitUntil(() => view.el.querySelectorAll('.chat-content .chat-image').length, 1000)
         expect(view.model.sendMessage).toHaveBeenCalled();
         let msg = sizzle('.chat-content .chat-msg:last .chat-msg__text').pop();
-        expect(msg.innerHTML.trim()).toEqual(
-            `<a target="_blank" rel="noopener" href="${base_url}/logo/conversejs-filled.svg" class="chat-image__link"><img src="${message}" class="chat-image img-thumbnail"></a>`);
+        expect(msg.innerHTML.replace(/<!---->/g, '').trim()).toEqual(
+            `<a class="chat-image__link" target="_blank" rel="noopener" href="${base_url}/logo/conversejs-filled.svg">`+
+                `<img class="chat-image img-thumbnail" src="${base_url}/logo/conversejs-filled.svg">`+
+            `</a>`);
+
         message += "?param1=val1&param2=val2";
         mock.sendMessage(view, message);
         await u.waitUntil(() => view.el.querySelectorAll('.chat-content .chat-image').length === 2, 1000);
         expect(view.model.sendMessage).toHaveBeenCalled();
         msg = sizzle('.chat-content .chat-msg:last .chat-msg__text').pop();
-        expect(msg.innerHTML.trim()).toEqual(
-            '<a target="_blank" rel="noopener" href="'+base_url+'/logo/conversejs-filled.svg?param1=val1&amp;param2=val2" class="chat-image__link"><img'+
-            ' src="'+message.replace(/&/g, '&amp;')+'" class="chat-image img-thumbnail"></a>')
+        expect(msg.innerHTML.replace(/<!---->/g, '').trim()).toEqual(
+            `<a class="chat-image__link" target="_blank" rel="noopener" href="${base_url}/logo/conversejs-filled.svg?param1=val1&amp;param2=val2">`+
+                `<img class="chat-image img-thumbnail" src="${message.replace(/&/g, '&amp;')}">`+
+            `</a>`);
 
         // Test now with two images in one message
         message += ' hello world '+base_url+"/logo/conversejs-filled.svg";
@@ -981,7 +986,7 @@ describe("A Chat Message", function () {
 
     it("will be correctly identified and rendered as a followup message",
         mock.initConverse(
-            ['rosterGroupsFetched'], {},
+            ['rosterGroupsFetched'], {'debounced_content_rendering': false},
             async function (done, _converse) {
 
         await mock.waitForRoster(_converse, 'current');
@@ -1044,19 +1049,22 @@ describe("A Chat Message", function () {
 
         expect(view.content.querySelectorAll('.message').length).toBe(6);
         expect(view.content.querySelectorAll('.chat-msg').length).toBe(5);
-        expect(u.hasClass('chat-msg--followup', view.content.querySelector('.message:nth-child(2)'))).toBe(false);
-        expect(view.content.querySelector('.message:nth-child(2) .chat-msg__text').textContent).toBe("A message");
-        expect(u.hasClass('chat-msg--followup', view.content.querySelector('.message:nth-child(3)'))).toBe(true);
-        expect(view.content.querySelector('.message:nth-child(3) .chat-msg__text').textContent).toBe(
+
+        const nth_child = (n) => `converse-chat-message:nth-child(${n}) .chat-msg`;
+        expect(u.hasClass('chat-msg--followup', view.content.querySelector(nth_child(2)))).toBe(false);
+        expect(view.content.querySelector(`${nth_child(2)} .chat-msg__text`).textContent).toBe("A message");
+
+        expect(u.hasClass('chat-msg--followup', view.content.querySelector(nth_child(3)))).toBe(true);
+        expect(view.content.querySelector(`${nth_child(3)} .chat-msg__text`).textContent).toBe(
             "Another message 3 minutes later");
-        expect(u.hasClass('chat-msg--followup', view.content.querySelector('.message:nth-child(4)'))).toBe(false);
-        expect(view.content.querySelector('.message:nth-child(4) .chat-msg__text').textContent).toBe(
+        expect(u.hasClass('chat-msg--followup', view.content.querySelector(nth_child(4)))).toBe(false);
+        expect(view.content.querySelector(`${nth_child(4)} .chat-msg__text`).textContent).toBe(
             "Another message 14 minutes since we started");
-        expect(u.hasClass('chat-msg--followup', view.content.querySelector('.message:nth-child(5)'))).toBe(true);
-        expect(view.content.querySelector('.message:nth-child(5) .chat-msg__text').textContent).toBe(
+        expect(u.hasClass('chat-msg--followup', view.content.querySelector(nth_child(5)))).toBe(true);
+        expect(view.content.querySelector(`${nth_child(5)} .chat-msg__text`).textContent).toBe(
             "Another message 1 minute and 1 second since the previous one");
-        expect(u.hasClass('chat-msg--followup', view.content.querySelector('.message:nth-child(6)'))).toBe(false);
-        expect(view.content.querySelector('.message:nth-child(6) .chat-msg__text').textContent).toBe(
+        expect(u.hasClass('chat-msg--followup', view.content.querySelector(nth_child(6)))).toBe(false);
+        expect(view.content.querySelector(`${nth_child(6)} .chat-msg__text`).textContent).toBe(
             "Another message within 10 minutes, but from a different person");
 
         // Let's add a delayed, inbetween message
@@ -1074,22 +1082,28 @@ describe("A Chat Message", function () {
 
         expect(view.content.querySelectorAll('.message').length).toBe(7);
         expect(view.content.querySelectorAll('.chat-msg').length).toBe(6);
-        expect(u.hasClass('chat-msg--followup', view.content.querySelector('.message:nth-child(2)'))).toBe(false);
-        expect(view.content.querySelector('.message:nth-child(2) .chat-msg__text').textContent).toBe("A message");
-        expect(u.hasClass('chat-msg--followup', view.content.querySelector('.message:nth-child(3)'))).toBe(true);
-        expect(view.content.querySelector('.message:nth-child(3) .chat-msg__text').textContent).toBe(
+        expect(u.hasClass('chat-msg--followup', view.content.querySelector(nth_child(2)))).toBe(false);
+        expect(view.content.querySelector(`${nth_child(2)} .chat-msg__text`).textContent).toBe("A message");
+
+
+        expect(u.hasClass('chat-msg--followup', view.content.querySelector(nth_child(3)))).toBe(true);
+        expect(view.content.querySelector(`${nth_child(3)} .chat-msg__text`).textContent).toBe(
             "Another message 3 minutes later");
-        expect(u.hasClass('chat-msg--followup', view.content.querySelector('.message:nth-child(4)'))).toBe(true);
-        expect(view.content.querySelector('.message:nth-child(4) .chat-msg__text').textContent).toBe(
+        expect(u.hasClass('chat-msg--followup', view.content.querySelector(nth_child(4)))).toBe(true);
+        expect(view.content.querySelector(`${nth_child(4)} .chat-msg__text`).textContent).toBe(
             "A delayed message, sent 5 minutes since we started");
 
-        expect(u.hasClass('chat-msg--followup', view.content.querySelector('.message:nth-child(5)'))).toBe(false);
-        expect(view.content.querySelector('.message:nth-child(5) .chat-msg__text').textContent).toBe(
+        expect(u.hasClass('chat-msg--followup', view.content.querySelector(nth_child(5)))).toBe(true);
+        expect(view.content.querySelector(`${nth_child(5)} .chat-msg__text`).textContent).toBe(
             "Another message 14 minutes since we started");
-        expect(u.hasClass('chat-msg--followup', view.content.querySelector('.message:nth-child(6)'))).toBe(true);
-        expect(view.content.querySelector('.message:nth-child(6) .chat-msg__text').textContent).toBe(
+
+        expect(u.hasClass('chat-msg--followup', view.content.querySelector(nth_child(6)))).toBe(true);
+        expect(view.content.querySelector(`${nth_child(6)} .chat-msg__text`).textContent).toBe(
             "Another message 1 minute and 1 second since the previous one");
-        expect(u.hasClass('chat-msg--followup', view.content.querySelector('.message:nth-child(7)'))).toBe(false);
+
+        expect(u.hasClass('chat-msg--followup', view.content.querySelector(nth_child(7)))).toBe(false);
+        expect(view.content.querySelector(`${nth_child(7)} .chat-msg__text`).textContent).toBe(
+            "Another message within 10 minutes, but from a different person");
 
         _converse.handleMessageStanza(
             $msg({
@@ -1103,27 +1117,26 @@ describe("A Chat Message", function () {
             .tree());
         await new Promise(resolve => view.model.messages.once('rendered', resolve));
 
-        expect(view.content.querySelectorAll('.message').length).toBe(8);
         expect(view.content.querySelectorAll('.chat-msg').length).toBe(7);
-        expect(u.hasClass('chat-msg--followup', view.content.querySelector('.message:nth-child(2)'))).toBe(false);
-        expect(view.content.querySelector('.message:nth-child(2) .chat-msg__text').textContent).toBe("A message");
-        expect(u.hasClass('chat-msg--followup', view.content.querySelector('.message:nth-child(3)'))).toBe(true);
-        expect(view.content.querySelector('.message:nth-child(3) .chat-msg__text').textContent).toBe(
+        expect(u.hasClass('chat-msg--followup', view.content.querySelector(nth_child(2)))).toBe(false);
+        expect(view.content.querySelector(`${nth_child(2)} .chat-msg__text`).textContent).toBe("A message");
+        expect(u.hasClass('chat-msg--followup', view.content.querySelector(nth_child(3)))).toBe(true);
+        expect(view.content.querySelector(`${nth_child(3)} .chat-msg__text`).textContent).toBe(
             "Another message 3 minutes later");
-        expect(u.hasClass('chat-msg--followup', view.content.querySelector('.message:nth-child(4)'))).toBe(false);
-        expect(view.content.querySelector('.message:nth-child(4) .chat-msg__text').textContent).toBe(
+        expect(u.hasClass('chat-msg--followup', view.content.querySelector(nth_child(4)))).toBe(false);
+        expect(view.content.querySelector(`${nth_child(4)} .chat-msg__text`).textContent).toBe(
             "A carbon message 4 minutes later");
-        expect(u.hasClass('chat-msg--followup', view.content.querySelector('.message:nth-child(5)'))).toBe(false);
-        expect(view.content.querySelector('.message:nth-child(5) .chat-msg__text').textContent).toBe(
+        expect(u.hasClass('chat-msg--followup', view.content.querySelector(nth_child(5)))).toBe(false);
+        expect(view.content.querySelector(`${nth_child(5)} .chat-msg__text`).textContent).toBe(
             "A delayed message, sent 5 minutes since we started");
-        expect(u.hasClass('chat-msg--followup', view.content.querySelector('.message:nth-child(6)'))).toBe(false);
-        expect(view.content.querySelector('.message:nth-child(6) .chat-msg__text').textContent).toBe(
+        expect(u.hasClass('chat-msg--followup', view.content.querySelector(nth_child(6)))).toBe(true);
+        expect(view.content.querySelector(`${nth_child(6)} .chat-msg__text`).textContent).toBe(
             "Another message 14 minutes since we started");
-        expect(u.hasClass('chat-msg--followup', view.content.querySelector('.message:nth-child(7)'))).toBe(true);
-        expect(view.content.querySelector('.message:nth-child(7) .chat-msg__text').textContent).toBe(
+        expect(u.hasClass('chat-msg--followup', view.content.querySelector(nth_child(7)))).toBe(true);
+        expect(view.content.querySelector(`${nth_child(7)} .chat-msg__text`).textContent).toBe(
             "Another message 1 minute and 1 second since the previous one");
-        expect(u.hasClass('chat-msg--followup', view.content.querySelector('.message:nth-child(8)'))).toBe(false);
-        expect(view.content.querySelector('.message:nth-child(8) .chat-msg__text').textContent).toBe(
+        expect(u.hasClass('chat-msg--followup', view.content.querySelector(nth_child(8)))).toBe(false);
+        expect(view.content.querySelector(`${nth_child(8)} .chat-msg__text`).textContent).toBe(
             "Another message within 10 minutes, but from a different person");
 
         jasmine.clock().uninstall();
@@ -1598,8 +1611,9 @@ describe("A Chat Message", function () {
                     .c('text', { 'xmlns': "urn:ietf:params:xml:ns:xmpp-stanzas" })
                         .t('Server-to-server connection failed: Connecting failed: connection timeout');
                 _converse.connection._dataRecv(mock.createRequest(stanza));
-                await new Promise(resolve => view.model.messages.once('rendered', resolve));
-                expect(view.content.querySelector('.chat-error').textContent.trim()).toEqual(error_txt);
+                await u.waitUntil(() => view.content.querySelector('.chat-msg__error').textContent.trim() === error_txt);
+
+                const other_error_txt = 'Server-to-server connection failed: Connecting failed: connection timeout';
                 stanza = $msg({
                         'to': _converse.connection.jid,
                         'type': 'error',
@@ -1609,10 +1623,10 @@ describe("A Chat Message", function () {
                     .c('error', {'type': 'cancel'})
                     .c('remote-server-not-found', { 'xmlns': "urn:ietf:params:xml:ns:xmpp-stanzas" }).up()
                     .c('text', { 'xmlns': "urn:ietf:params:xml:ns:xmpp-stanzas" })
-                        .t('Server-to-server connection failed: Connecting failed: connection timeout');
+                        .t(other_error_txt);
                 _converse.connection._dataRecv(mock.createRequest(stanza));
-                await new Promise(resolve => view.model.messages.once('rendered', resolve));
-                expect(view.content.querySelectorAll('.chat-error').length).toEqual(2);
+                await u.waitUntil(() =>
+                    view.content.querySelector('converse-chat-message:last-child .chat-msg__error').textContent.trim() === other_error_txt);
 
                 // We don't render duplicates
                 stanza = $msg({
@@ -1626,13 +1640,11 @@ describe("A Chat Message", function () {
                     .c('text', { 'xmlns': "urn:ietf:params:xml:ns:xmpp-stanzas" })
                         .t('Server-to-server connection failed: Connecting failed: connection timeout');
                 _converse.connection._dataRecv(mock.createRequest(stanza));
-                expect(view.content.querySelectorAll('.chat-error').length).toEqual(2);
+                expect(view.content.querySelectorAll('.chat-msg__error').length).toEqual(2);
 
                 msg_text = 'This message will be sent, and also receive an error';
                 const third_message = await view.model.sendMessage(msg_text);
-                await new Promise(resolve => view.model.messages.once('rendered', resolve));
-                msg_txt = sizzle('.chat-msg:last .chat-msg__text', view.content).pop().textContent;
-                expect(msg_txt).toEqual(msg_text);
+                await u.waitUntil(() => sizzle('converse-chat-message:last-child .chat-msg__text', view.content).pop()?.textContent === msg_text);
 
                 // A different error message will however render
                 stanza = $msg({
@@ -1648,7 +1660,7 @@ describe("A Chat Message", function () {
                 _converse.connection._dataRecv(mock.createRequest(stanza));
                 await u.waitUntil(() => view.model.messages.length > 3);
                 await new Promise(resolve => view.model.messages.once('rendered', resolve));
-                expect(view.content.querySelectorAll('.chat-error').length).toEqual(3);
+                expect(view.content.querySelectorAll('.chat-error').length).toEqual(1);
                 done();
             }));
 
@@ -1820,9 +1832,9 @@ describe("A Chat Message", function () {
             expect(u.hasClass('chat-msg__text', msg)).toBe(true);
             expect(msg.textContent).toEqual('Have you heard this funny audio?');
             let media = view.el.querySelector('.chat-msg .chat-msg__media');
-            expect(media.innerHTML.replace(/(\r\n|\n|\r)/gm, "")).toEqual(
-                `<!---->    <audio controls="" src="https://montague.lit/audio.mp3"></audio>    `+
-                `<a target="_blank" rel="noopener" href="https://montague.lit/audio.mp3"><!---->Download audio file "audio.mp3"<!----></a><!---->`);
+            expect(media.innerHTML.replace(/<!---->/g, '').replace(/(\r\n|\n|\r)/gm, "").trim()).toEqual(
+                `<audio controls="" src="https://montague.lit/audio.mp3"></audio>    `+
+                `<a target="_blank" rel="noopener" href="https://montague.lit/audio.mp3">Download audio file "audio.mp3"</a>`);
 
             // If the <url> and <body> contents is the same, don't duplicate.
             stanza = u.toStanza(`
@@ -1835,12 +1847,12 @@ describe("A Chat Message", function () {
             _converse.connection._dataRecv(mock.createRequest(stanza));
             await new Promise(resolve => view.model.messages.once('rendered', resolve));
             msg = view.el.querySelector('.chat-msg:last-child .chat-msg__text');
-            expect(msg.innerHTML).toEqual('<!-- message gets added here via renderMessage -->'); // Emtpy
+            expect(msg.innerHTML.replace(/<!---->/g, '')).toEqual('Have you heard this funny audio?'); // Emtpy
             media = view.el.querySelector('.chat-msg:last-child .chat-msg__media');
-            expect(media.innerHTML.replace(/(\r\n|\n|\r)/gm, "")).toEqual(
-                `<!---->    <audio controls="" src="https://montague.lit/audio.mp3"></audio>    `+
+            expect(media.innerHTML.replace(/<!---->/g, '').replace(/(\r\n|\n|\r)/gm, "").trim()).toEqual(
+                `<audio controls="" src="https://montague.lit/audio.mp3"></audio>    `+
                 `<a target="_blank" rel="noopener" href="https://montague.lit/audio.mp3">`+
-                `<!---->Download audio file "audio.mp3"<!----></a><!---->`);
+                `Download audio file "audio.mp3"</a>`);
             done();
         }));
 

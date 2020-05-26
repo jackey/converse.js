@@ -60,6 +60,7 @@ converse.plugins.add('converse-chatview', {
             'show_send_button': true,
             'show_toolbar': true,
             'time_format': 'HH:mm',
+            'debounced_content_rendering': true,
             'visible_toolbar_buttons': {
                 'call': false,
                 'clear': true,
@@ -191,7 +192,6 @@ converse.plugins.add('converse-chatview', {
                 this.listenTo(this.model.messages, 'add', this.renderChatHistory);
                 this.listenTo(this.model.messages, 'change', this.renderChatHistory);
                 this.listenTo(this.model.messages, 'reset', this.renderChatHistory);
-                this.listenTo(this.model.notifications, 'change', this.renderNotifications);
 
                 this.listenTo(this.model, 'change:status', this.onStatusMessageChanged);
                 this.listenTo(this.model, 'destroy', this.remove);
@@ -210,6 +210,10 @@ converse.plugins.add('converse-chatview', {
 
                 this.listenTo(this.model.presence, 'change:show', this.onPresenceChanged);
                 this.render();
+
+                // Need to be registered after render has been called.
+                this.listenTo(this.model.notifications, 'change', this.renderNotifications);
+
                 await this.updateAfterMessagesFetched();
                 this.model.maybeShow();
                 /**
@@ -223,8 +227,15 @@ converse.plugins.add('converse-chatview', {
 
             initDebounced () {
                 this.markScrolled = debounce(this._markScrolled, 100);
-                this.renderChatHistory = debounce(() => this.renderChatContent(false), 100);
-                this.renderNotifications = debounce(() => this.renderChatContent(true), 100);
+                // For tests that use Jasmine.Clock we want to turn of
+                // debouncing, since setTimeout breaks.
+                if (api.settings.get('debounced_content_rendering')) {
+                    this.renderChatHistory = debounce(() => this.renderChatContent(false), 100);
+                    this.renderNotifications = debounce(() => this.renderChatContent(true), 100);
+                } else {
+                    this.renderChatHistory = () => this.renderChatContent(false);
+                    this.renderNotifications = () => this.renderChatContent(true);
+                }
             },
 
             async render () {

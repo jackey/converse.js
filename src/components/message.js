@@ -1,7 +1,8 @@
 import "./message-body.js";
 import MessageVersionsModal from '../modals/message-versions.js';
-import tpl_spinner from '../templates/spinner.js';
 import dayjs from 'dayjs';
+import filesize from "filesize";
+import tpl_spinner from '../templates/spinner.js';
 import { CustomElement } from './element.js';
 import { __ } from '@converse/headless/i18n';
 import { _converse, api, converse } from  "@converse/headless/converse-core";
@@ -17,7 +18,6 @@ const i18n_edited = __('This message has been edited');
 const i18n_show = __('Show more');
 const i18n_show_less = __('Show less');
 const i18n_uploading = __('Uploading file:')
-const i18n_reason = __('The following reason was provided: ')
 
 
 class Message extends CustomElement {
@@ -42,6 +42,7 @@ class Message extends CustomElement {
             is_spoiler: { type: Boolean },
             is_spoiler_visible: { type: Boolean },
             message_type: { type: String },
+            edited: { type: String },
             model: { type: Object },
             moderated_by: { type: String },
             moderation_reason: { type: String },
@@ -49,7 +50,7 @@ class Message extends CustomElement {
             occupant_affiliation: { type: String },
             occupant_role: { type: String },
             oob_url: { type: String },
-            progress: { type: String },
+            progress: { type: Number },
             reason: { type: String },
             received: { type: String },
             retractable: { type: Boolean },
@@ -77,6 +78,19 @@ class Message extends CustomElement {
         }
     }
 
+    updated () {
+        // XXX: This is ugly but tests rely on this event.
+        // For "normal" chat messages the event is fired in
+        // src/templates/directives/body.js
+        if (
+            this.show_spinner ||
+            (this.model.get('file') && !this.model.get('oob_url')) ||
+            (['error', 'info'].includes(this.message_type))
+        ) {
+            this.model.collection?.trigger('rendered', this.model);
+        }
+    }
+
     renderInfoMessage () {
         const isodate = dayjs(this.model.get('time')).toISOString();
         const i18n_retry = __('Retry');
@@ -96,13 +110,14 @@ class Message extends CustomElement {
         `;
     }
 
-
     renderFileProgress () {
+        const filename = this.model.file.name;
+        const size = filesize(this.model.file.size);
         return html`
             <div class="message chat-msg">
                 ${ renderAvatar(this) }
                 <div class="chat-msg__content">
-                    <span class="chat-msg__text">${i18n_uploading} <strong>${this.filename}</strong>, ${this.filesize}</span>
+                    <span class="chat-msg__text">${i18n_uploading} <strong>${filename}</strong>, ${size}</span>
                     <progress value="${this.progress}"/>
                 </div>
             </div>`;
@@ -246,9 +261,7 @@ class Message extends CustomElement {
                 ?is_spoiler_visible="${this.is_spoiler_visible}"
                 text="${this.model.getMessageText()}"></converse-chat-message-body>
             ${ this.oob_url ? html`<div class="chat-msg__media">${u.getOOBURLMarkup(_converse, this.oob_url)}</div>` : '' }
-            <div class="chat-msg__error">
-                ${this.error} ${ this.error_text ? html`${i18n_reason} <q class="reason">${this.error_text}</q>` : `` }
-            </div>
+            <div class="chat-msg__error">${ this.error_text || this.error }</div>
         `;
     }
 

@@ -4,6 +4,8 @@ let _converse, initConverse;
 
 const converseLoaded = new Promise(resolve => window.addEventListener('converse-loaded', resolve));
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 7000;
+
 mock.initConverse = function (promise_names=[], settings=null, func) {
     if (typeof promise_names === "function") {
         func = promise_names;

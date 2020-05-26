@@ -1258,7 +1258,7 @@ describe("The OMEMO module", function() {
 
     it("adds a toolbar button for starting an encrypted groupchat session",
         mock.initConverse(
-            ['rosterGroupsFetched', 'chatBoxesFetched'], {'view_mode': 'fullscreen'},
+            ['rosterGroupsFetched', 'chatBoxesFetched'], {},
             async function (done, _converse) {
 
         await mock.waitUntilDiscoConfirmed(
@@ -1416,8 +1416,7 @@ describe("The OMEMO module", function() {
         _converse.connection._dataRecv(mock.createRequest(stanza));
 
         await u.waitUntil(() => !view.model.get('omemo_supported'));
-
-        expect(view.el.querySelector('.chat-error').textContent.trim()).toBe(
+        await u.waitUntil(() => view.el.querySelector('.chat-error .chat-info__message')?.textContent.trim() ===
             "oldguy doesn't appear to have a client that supports OMEMO. "+
             "Encrypted chat will no longer be possible in this grouchat."
         );

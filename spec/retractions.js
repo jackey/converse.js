@@ -2,7 +2,6 @@
 
 const { Strophe, $iq } = converse.env;
 const u = converse.env.utils;
-const original_timeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
 
 
 async function sendAndThenRetractMessage (_converse, view) {
@@ -34,9 +33,6 @@ async function sendAndThenRetractMessage (_converse, view) {
 
 
 describe("Message Retractions", function () {
-
-    beforeEach(() => (jasmine.DEFAULT_TIMEOUT_INTERVAL = 7000));
-    afterEach(() => (jasmine.DEFAULT_TIMEOUT_INTERVAL = original_timeout));
 
     describe("A groupchat message retraction", function () {
 
@@ -631,8 +627,8 @@ describe("Message Retractions", function () {
                     `</apply-to>`+
                 `</message>`);
 
+            await u.waitUntil(() => view.model.messages.last().get('retracted'));
             const message = view.model.messages.last();
-            expect(message.get('retracted')).toBeTruthy();
             expect(message.get('is_ephemeral')).toBe(false);
             expect(message.get('editable')).toBeFalsy();
 
@@ -651,7 +647,7 @@ describe("Message Retractions", function () {
             _converse.connection._dataRecv(mock.createRequest(reflection));
             await u.waitUntil(() => view.model.handleRetraction.calls.count() === 1);
 
-            expect(view.model.messages.length).toBe(1);
+            await u.waitUntil(() => view.model.messages.length === 1);
             expect(view.model.messages.last().get('retracted')).toBeTruthy();
             expect(view.model.messages.last().get('is_ephemeral')).toBe(false);
             expect(view.model.messages.last().get('editable')).toBe(false);
@@ -678,7 +674,7 @@ describe("Message Retractions", function () {
             await u.waitUntil(() => view.el.querySelectorAll('.chat-msg--retracted').length === 1);
 
             expect(view.model.messages.length).toBe(1);
-            expect(view.model.messages.last().get('retracted')).toBeTruthy();
+            await u.waitUntil(() => view.model.messages.last().get('retracted'));
             const el = view.el.querySelector('.chat-msg--retracted .chat-msg__message div');
             expect(el.textContent.trim()).toBe('romeo has removed this message');
 
@@ -1116,7 +1112,7 @@ describe("Message Retractions", function () {
             await u.waitUntil(() => view.model.messages.length);
             expect(view.model.messages.length).toBe(1);
             let message = view.model.messages.at(0);
-            expect(message.get('retracted')).toBeTruthy();
+            await u.waitUntil(() => message.get('retracted'));
             expect(message.get('is_tombstone')).toBe(true);
 
             await u.waitUntil(() => view.model.handleModeration.calls.count() === 2);

@@ -402,7 +402,12 @@ converse.plugins.add('converse-chat', {
                 }
                 const message = this.getMessageReferencedByError(attrs);
                 if (message) {
-                    const new_attrs = {'error': attrs.error };
+                    const new_attrs = {
+                        'error': attrs.error,
+                        'error_condition': attrs.error_condition,
+                        'error_text': attrs.error_text,
+                        'error_type': attrs.error_type,
+                    };
                     if (attrs.msgid === message.get('retraction_id')) {
                         // The error message refers to a retraction
                         new_attrs.retraction_id = undefined;
@@ -1076,9 +1081,9 @@ converse.plugins.add('converse-chat', {
                     });
                     return;
                 }
-                const data = item.dataforms.where({'FORM_TYPE': {'value': Strophe.NS.HTTPUPLOAD, 'type': "hidden"}}).pop(),
-                      max_file_size = window.parseInt((data?.attributes || {})['max-file-size']?.value),
-                      slot_request_url = item?.id;
+                const data = item.dataforms.where({'FORM_TYPE': {'value': Strophe.NS.HTTPUPLOAD, 'type': "hidden"}}).pop();
+                const max_file_size = window.parseInt((data?.attributes || {})['max-file-size']?.value);
+                const slot_request_url = item?.id;
 
                 if (!slot_request_url) {
                     this.createMessage({

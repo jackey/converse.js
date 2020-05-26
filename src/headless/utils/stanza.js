@@ -453,7 +453,7 @@ const st = {
          * @property { String } body - The contents of the <body> tag of the message stanza
          * @property { String } chat_state - The XEP-0085 chat state notification contained in this message
          * @property { String } contact_jid - The JID of the other person or entity
-         * @property { String } edit - An ISO8601 string recording the time that the message was edited per XEP-0308
+         * @property { String } edited - An ISO8601 string recording the time that the message was edited per XEP-0308
          * @property { String } error_condition - The defined error condition
          * @property { String } error_text - The error text received from the server
          * @property { String } error_type - The type of error received from the server
@@ -586,7 +586,7 @@ const st = {
          * @property { Object } encrypted -  XEP-0384 encryption payload attributes
          * @property { String } body - The contents of the <body> tag of the message stanza
          * @property { String } chat_state - The XEP-0085 chat state notification contained in this message
-         * @property { String } edit - An ISO8601 string recording the time that the message was edited per XEP-0308
+         * @property { String } edited - An ISO8601 string recording the time that the message was edited per XEP-0308
          * @property { String } error_condition - The defined error condition
          * @property { String } error_text - The error text received from the server
          * @property { String } error_type - The type of error received from the server

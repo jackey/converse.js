@@ -459,22 +459,15 @@ converse.plugins.add('converse-muc-views', {
             async initialize () {
                 this.initDebounced();
 
-                this.listenTo(this.model.messages, 'add', this.renderChatHistory);
-                this.listenTo(this.model.messages, 'change', this.renderChatHistory);
-                this.listenTo(this.model.messages, 'rendered', this.scrollDown);
-                this.listenTo(this.model.messages, 'reset', this.renderChatHistory);
-                this.listenTo(this.model.notifications, 'change', this.renderNotifications);
-
-                this.listenTo(this.model.session, 'change:connection_status', this.onConnectionStatusChanged);
-
                 this.listenTo(this.model, 'change', debounce(() => this.renderHeading(), 250));
                 this.listenTo(this.model, 'change:hidden_occupants', this.updateOccupantsToggle);
                 this.listenTo(this.model, 'configurationNeeded', this.getAndRenderConfigurationForm);
                 this.listenTo(this.model, 'destroy', this.hide);
                 this.listenTo(this.model, 'show', this.show);
-
                 this.listenTo(this.model.features, 'change:moderated', this.renderBottomPanel);
                 this.listenTo(this.model.features, 'change:open', this.renderHeading);
+                this.listenTo(this.model.messages, 'rendered', this.scrollDown);
+                this.listenTo(this.model.session, 'change:connection_status', this.onConnectionStatusChanged);
 
                 // Bind so that we can pass it to addEventListener and removeEventListener
                 this.onMouseMove =  this.onMouseMove.bind(this);
@@ -483,13 +476,18 @@ converse.plugins.add('converse-muc-views', {
                 await this.render();
 
                 // Need to be registered after render has been called.
+                this.listenTo(this.model.messages, 'add', this.renderChatHistory);
+                this.listenTo(this.model.messages, 'change', this.renderChatHistory);
+                this.listenTo(this.model.messages, 'reset', this.renderChatHistory);
+                this.listenTo(this.model.notifications, 'change', this.renderNotifications);
+
                 this.model.occupants.forEach(o => this.onOccupantAdded(o));
                 this.listenTo(this.model.occupants, 'add', this.onOccupantAdded);
-                this.listenTo(this.model.occupants, 'remove', this.onOccupantRemoved);
-                this.listenTo(this.model.occupants, 'change:show', this.showJoinOrLeaveNotification);
-                this.listenTo(this.model.occupants, 'change:role', this.onOccupantRoleChanged);
+                this.listenTo(this.model.occupants, 'change', this.renderChatHistory);
                 this.listenTo(this.model.occupants, 'change:affiliation', this.onOccupantAffiliationChanged);
-                this.listenTo(this.model.notifications, 'change', this.renderNotifications);
+                this.listenTo(this.model.occupants, 'change:role', this.onOccupantRoleChanged);
+                this.listenTo(this.model.occupants, 'change:show', this.showJoinOrLeaveNotification);
+                this.listenTo(this.model.occupants, 'remove', this.onOccupantRemoved);
 
                 this.createSidebarView();
                 await this.updateAfterMessagesFetched();

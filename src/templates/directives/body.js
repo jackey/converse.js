@@ -5,28 +5,6 @@ import { isString } from "lodash";
 const u = converse.env.utils;
 
 
-class Markup extends String {
-
-    constructor (data) {
-        super();
-        this.markup = data.markup;
-        this.text = data.text;
-    }
-
-    get length () {
-        return this.text.length;
-    }
-
-    toString () {
-        return "" + this.text;
-    }
-
-    textOf () {
-        return this.toString();
-    }
-}
-
-
 class MessageBodyRenderer extends String {
 
     constructor (component) {
@@ -92,19 +70,28 @@ const tpl_mention = (o) => html`<span class="mention">${o.mention}</span>`;
 
 function addMentionsMarkup (text, references, chatbox) {
     if (chatbox.get('message_type') === 'groupchat' && references.length) {
-        let list = [];
+        let list = [text];
         const nick = chatbox.get('nick');
         references
             .sort((a, b) => b.begin - a.begin)
             .forEach(ref => {
-                const mention = text.slice(ref.begin, ref.end)
-                chatbox;
+                const text = list.shift();
+                const mention = text.slice(ref.begin, ref.end);
                 if (mention === nick) {
-                    list = [text.slice(0, ref.begin), new Markup(mention, tpl_mention_with_nick({mention})), text.slice(ref.end),  ...list];
+                    list = [
+                        text.slice(0, ref.begin),
+                        tpl_mention_with_nick({mention}),
+                        text.slice(ref.end),
+                        ...list
+                    ];
                 } else {
-                    list = [text.slice(0, ref.begin), new Markup(mention, tpl_mention({mention})), text.slice(ref.end), ...list];
+                    list = [
+                        text.slice(0, ref.begin),
+                        tpl_mention({mention}),
+                        text.slice(ref.end),
+                        ...list
+                    ];
                 }
-                text = text.slice(0, ref.begin);
             });
         return list;
     } else {
@@ -118,5 +105,5 @@ export const renderBodyText = directive(component => async part => {
     const renderer = new MessageBodyRenderer(component);
     part.setValue(await renderer.render());
     part.commit();
-    model.collection && model.collection.trigger('rendered', model);
+    model.collection?.trigger('rendered', model);
 });

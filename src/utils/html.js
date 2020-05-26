@@ -388,12 +388,13 @@ u.addHyperlinks = function (text) {
 
     const show_images = api.settings.get('show_images_inline');
 
-    let list = [];
+    let list = [text];
     if (objs.length) {
         objs.sort((a, b) => b.start - a.start)
             .forEach(url_obj => {
+                const text = list.shift();
                 const url_text = text.slice(url_obj.start, url_obj.end);
-                const new_list = [
+                list = [
                     text.slice(0, url_obj.start),
                     show_images && u.isImageURL(url_text) ?
                         u.convertToImageTag(url_text) :
@@ -401,8 +402,6 @@ u.addHyperlinks = function (text) {
                     text.slice(url_obj.end),
                     ...list
                 ];
-                list = new_list.filter(i => i);
-                text = text.slice(0, url_obj.start);
             });
     } else {
         list = [text];

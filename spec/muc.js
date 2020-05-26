@@ -4997,11 +4997,13 @@ describe("Groupchats", function () {
 
                 // See XEP-0085 https://xmpp.org/extensions/xep-0085.html#definitions
 
-                const timeout_functions = [];
-                spyOn(window, 'setTimeout').and.callFake(f => {
+                const remove_notifications_timeouts = [];
+                const setTimeout = window.setTimeout;
+                spyOn(window, 'setTimeout').and.callFake((f, w) => {
                     if (f.toString() === "() => this.removeNotification(actor, state)") {
-                        timeout_functions.push(f)
+                        remove_notifications_timeouts.push(f)
                     }
+                    setTimeout(f, w);
                 });
 
                 // <composing> state
@@ -5015,7 +5017,7 @@ describe("Groupchats", function () {
 
                 csntext = await u.waitUntil(() => view.el.querySelector('.chat-content__notifications').textContent);
                 expect(csntext.trim()).toEqual('newguy is typing');
-                expect(timeout_functions.length).toBe(1);
+                expect(remove_notifications_timeouts.length).toBe(1);
 
                 expect(view.el.querySelector('.chat-content__notifications').textContent.trim()).toEqual('newguy is typing');
 
@@ -5049,7 +5051,6 @@ describe("Groupchats", function () {
                 await view.model.handleMessageStanza(msg);
                 await u.waitUntil(() => view.el.querySelector('.chat-content__notifications').textContent.trim() === 'newguy, nomorenicks and others are typing');
 
-                // Check that new messages appear under the chat state notifications
                 msg = $msg({
                     from: `${muc_jid}/some1`,
                     id: u.getUniqueId(),
@@ -5057,7 +5058,7 @@ describe("Groupchats", function () {
                     type: 'groupchat'
                 }).c('body').t('hello world').tree();
                 await view.model.handleMessageStanza(msg);
-                await new Promise(resolve => view.model.messages.once('rendered', resolve));
+                await new Promise(resolve => view.model.messages.once('rendered', resolve), 1000);
 
                 const messages = view.el.querySelectorAll('.message');
                 expect(messages.length).toBe(2);
@@ -5065,7 +5066,7 @@ describe("Groupchats", function () {
                 expect(view.el.querySelector('.chat-msg .chat-msg__text').textContent.trim()).toBe('hello world');
 
                 // Test that the composing notifications get removed via timeout.
-                timeout_functions[0]();
+                remove_notifications_timeouts[0]();
                 await u.waitUntil(() => view.el.querySelector('.chat-content__notifications').textContent.trim() === 'nomorenicks, majortom and groundcontrol are typing');
                 done();
             }));
