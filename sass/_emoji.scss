@@ -76,14 +76,17 @@
                     padding-bottom: 0.5em;
                 }
                 li {
+                    display: inline-block;
+                    height: 30px;
+                    width: 30px;
+                    overflow: hidden;
                     margin-left: 0;
-                    cursor: pointer;
                     list-style: none;
                     position: relative;
                     &.insert-emoji {
                         margin: 0;
-                        height: 30px;
-                        width: 32px;
+                        display: block;
+                        text-align: center;
                         &.selected a {
                             background-color: var(--highlight-color-darker);
                         }
@@ -94,7 +97,11 @@
                         }
                         a {
                             padding: 3px;
+                            display: inline-block;
                             font-size: var(--font-size-huge);
+                            height: 30px;
+                            width: 30px;
+                            overflow: hidden;
                             &:hover {
                                 background-color: var(--highlight-color-darker);
                             }
@@ -119,18 +126,15 @@
                     flex-wrap: wrap;
 
                     .emoji-category {
-                        padding: 0.25em 0;
                         font-size: var(--font-size-huge);
                         &.picked {
                             background-color: white;
                             border: 1px var(--chat-head-color) solid;
                             border-bottom: none;
                         }
-                        &.selected a, &:hover a {
-                            background-color: var(--highlight-color-darker);
-                        }
                         a {
                             padding: 0.25em;
+                            display: inline-block;
                         }
                         img {
                             height: var(--font-size-huge);
