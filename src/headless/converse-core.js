@@ -78,6 +78,19 @@ class TimeoutError extends Error {}
 
 class IllegalMessage extends Error {}
 
+// electron confirm 
+export const confirm = (message, title) => {
+    if (typeof window.dialog != 'undefined') {
+        let yes =  window.dialog.showMessageBoxSync({
+            buttons: [__("yes"), __("cancel")],
+            title: title ? title: __("Confirm"),
+            message: message,
+        });
+
+        return yes == 0;
+    }
+};
+
 
 // Setting wait to 59 instead of 60 to avoid timing conflicts with the
 // webserver, which is often also set to 60 and might therefore sometimes

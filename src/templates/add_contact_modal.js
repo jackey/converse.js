@@ -6,7 +6,7 @@ const i18n_contact_placeholder = __('name@example.org');
 const i18n_add = __('Add');
 const i18n_error_message = __('Please enter a valid XMPP address');
 const i18n_new_contact = __('Add a Contact');
-const i18n_xmpp_address = __('XMPP Address');
+const i18n_xmpp_address = __('Username');
 const i18n_nickname = __('Nickname');
 
 

@@ -63,5 +63,8 @@ const converse = {
     }
 }
 
+if (typeof window.dialog != 'undefined') {
+    window.confirm = converse.confirm;
+}
 window.converse = converse;
 export default converse;

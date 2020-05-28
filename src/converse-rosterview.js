@@ -151,6 +151,7 @@ converse.plugins.add('converse-rosterview', {
 
             validateSubmission (jid) {
                 const el = this.el.querySelector('.invalid-feedback');
+                jid = jid + '@' + _converse.api.settings.get('locked_domain'); // 用户只输入username即可
                 if (!jid || compact(jid.split('@')).length < 2) {
                     u.addClass('is-invalid', this.el.querySelector('input[name="jid"]'));
                     u.addClass('d-block', el);

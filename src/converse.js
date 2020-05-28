@@ -33,7 +33,7 @@ import "converse-uniview";
 
 import "../sass/converse.scss";
 
-import { converse } from "@converse/headless/converse-core";
+import { converse, confirm } from "@converse/headless/converse-core";
 
 const WHITELISTED_PLUGINS = [
     'converse-autocomplete',
@@ -72,4 +72,5 @@ converse.initialize = function (settings, callback) {
     return initialize(settings, callback);
 }
 
+converse.confirm = confirm;
 export default converse;

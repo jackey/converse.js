@@ -8,7 +8,7 @@ const i18n_login = __('Log in');
 const i18n_hint_no_account = __("Don't have a chat account?");
 const i18n_password = __('Password');
 const i18n_trusted = __('This is a trusted device');
-const i18n_xmpp_address = __("XMPP Address");
+const i18n_xmpp_address = __("Username");
 const i18n_create_account = __("Create an account");
 const i18n_hint_trusted = __(
     'To improve performance, we cache your data in this browser. '+

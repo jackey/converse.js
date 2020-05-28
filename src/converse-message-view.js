@@ -89,6 +89,9 @@ converse.plugins.add('converse-message-view', {
             },
 
             initialize () {
+
+            
+
                 this.debouncedRender = debounce(() => {
                     // If the model gets destroyed in the meantime,
                     // it no longer has a collection

@@ -166,14 +166,25 @@ converse.plugins.add('converse-chat', {
             },
 
             getDisplayName () {
-                if (this.get('type') === 'groupchat') {
+
+                // 去掉域名
+                const trimDisplayname = (name) => {
+                    console.log({
+                        name,
+                        part:name.split('@')[0], 
+                    });
+                    return name.split('@')[0];
+                }
+                let nick = this.get('nick');
+
+                if (this.get('type') === 'groupchat' || nick) {
                     return this.get('nick');
                 } else if (this.contact) {
                     return this.contact.getDisplayName();
                 } else if (this.vcard) {
                     return this.vcard.getDisplayName();
                 } else {
-                    return this.get('from');
+                    return trimDisplayname(this.get('from'));
                 }
             },
 
