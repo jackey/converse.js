@@ -98,11 +98,13 @@ export const i18n = {
             return;
         }
         const { default: data } = await import(
+            /*webpackChunkName: "locales/[request]" */ 
             `../../locale/${locale}/LC_MESSAGES/converse.po`);
 
         await import(
+            /*webpackChunkName: "locales/dayjs/[request]" */ 
             `dayjs/locale/${locale.toLowerCase().replace('_', '-')}`);
-
+            
         dayjs.locale(getLocale(_converse.locale, l => dayjs.locale(l)));
         jed_instance = new Jed(data);
     }
