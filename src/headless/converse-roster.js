@@ -215,6 +215,10 @@ converse.plugins.add('converse-roster', {
                 this.initialized = u.getResolveablePromise();
                 this.setPresence();
                 const { jid } = attributes;
+                console.log({
+                    jid,
+                    attributes
+                });
                 const bare_jid = Strophe.getBareJidFromJid(jid).toLowerCase();
                 attributes.jid = bare_jid;
                 this.set(Object.assign({

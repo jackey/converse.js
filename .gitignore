@@ -19,7 +19,7 @@
 pip-selfcheck.json
 
 3rdparty/libsignal-protocol-javascript/
-*.map
+#*.map
 
 locale.zip
 sounds.zip
