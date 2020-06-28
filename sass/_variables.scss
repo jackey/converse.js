@@ -200,6 +200,8 @@ $mobile_portrait_length: 480px !default;
     --chat-correcting-color: #FFFFC0;
     --chat-head-text-color: #AAA;
 
+    --chat-head-color: #333;
+
     --chat-info-color: var(--subdued-color);
 
     --chatbox-border-radius: 0px;
@@ -241,4 +243,6 @@ $mobile_portrait_length: 480px !default;
     --list-item-link-hover-color: #DDD;
     --list-item-open-color: #444;
     --list-item-open-hover-color: #444;
+
+    
 }

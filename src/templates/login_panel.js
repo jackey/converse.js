@@ -10,6 +10,7 @@ const i18n_password = __('Password');
 const i18n_trusted = __('This is a trusted device');
 const i18n_xmpp_address = __("Username");
 const i18n_create_account = __("Create an account");
+const auto_logining = __("auto login...");
 const i18n_hint_trusted = __(
     'To improve performance, we cache your data in this browser. '+
     'Uncheck this box if this is a public computer or if you want your data to be deleted when you log out. '+
@@ -76,6 +77,8 @@ export default (o) => html`
             <p class="feedback-subject">${ o.conn_feedback_subject }</p>
             <p class="feedback-message ${ !o.conn_feedback_message ? 'hidden' : '' }">${o.conn_feedback_message}</p>
         </div>
+        <div class="wrapper">
         ${ (o._converse.CONNECTION_STATUS[o.connection_status] === 'CONNECTING') ? tpl_spinner() : form_fields(o) }
+        </div>
     </form>
 `;

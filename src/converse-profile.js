@@ -200,7 +200,7 @@ converse.plugins.add('converse-profile', {
                     this.model.toJSON(),
                     this.model.vcard.toJSON(), {
                     chat_status,
-                    'fullname': this.model.vcard.get('fullname') || _converse.bare_jid,
+                    'fullname': this.model.vcard.get('fullname') || __('nickname'),
                     "showUserSettingsModal": ev => this.showUserSettingsModal(ev),
                     'status_message': this.model.get('status_message') ||
                                         __("I am %1$s", this.getPrettyStatus(chat_status)),
